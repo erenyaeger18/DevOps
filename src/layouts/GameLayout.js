@@ -70,6 +70,7 @@ const GameLayout = ({}) => {
   }, [currentPlayer, cells]);
 
   return (
+    <span>Hi</span>
     <div style={gameLayoutStyle}>
       <GameInfo currentPlayer={currentPlayer} />  
       <Board onClickCells={handleClickCell} cells={cells}/>
