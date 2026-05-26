@@ -1,0 +1,37 @@
+  name: Test CI Health
+
+  on:
+    push:
+    pull_request:
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Generate fake JUnit XML
+          run: |
+            mkdir -p test-results
+            cat > test-results/results.xml << 'EOF'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <testsuites name="DevOps Tests" tests="4" failures="1" errors="0" skipped="1" time="2.45">
+              <testsuite name="auth" tests="2" failures="1" time="1.2">
+                <testcase name="login_success" classname="AuthService" time="0.5"/>
+                <testcase name="login_invalid_token" classname="AuthService" time="0.7">
+                  <failure message="Expected 401 but got 200">AssertionError: status mismatch</failure>
+                </testcase>
+              </testsuite>
+              <testsuite name="deploy" tests="2" failures="0" skipped="1" time="1.25">
+                <testcase name="docker_build" classname="DeployPipeline" time="1.1"/>
+                <testcase name="k8s_rollout" classname="DeployPipeline" time="0.15">
+                  <skipped/>
+                </testcase>
+              </testsuite>
+            </testsuites>
+            EOF
+
+        - name: Upload test results
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-results
+            path: test-results/**/*.xml
+          if: always()
