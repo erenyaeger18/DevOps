@@ -1,0 +1,31 @@
+ name: Test_CI_Health
+ on: [push, pull_request, workflow_dispatch]
+ jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Generate fake JUnit XML
+          run: |
+            mkdir -p test-results
+            cat > test-results/results.xml << 'XMLEOF'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <testsuites name="DevOps Tests" tests="4" failures="1">
+              <testsuite name="auth" tests="2" failures="1">
+                <testcase name="login_success" classname="AuthService" time="0.5"/>
+                <testcase name="login_invalid_token" classname="AuthService" time="0.7">
+                  <failure message="Expected 401 but got 200">AssertionError</failure>
+                </testcase>
+              </testsuite>
+              <testsuite name="deploy" tests="2" failures="0">
+                <testcase name="docker_build" classname="DeployPipeline" time="1.1"/>
+                <testcase name="k8s_rollout" classname="DeployPipeline" time="0.15">
+                  <skipped/>
+                </testcase>
+              </testsuite>
+            </testsuites>
+            XMLEOF
+        - uses: actions/upload-artifact@v4
+          with:
+            name: test-results
+            path: test-results/**/*.xml
+          if: always()
